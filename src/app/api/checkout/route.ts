@@ -47,11 +47,14 @@ export async function POST(request: NextRequest) {
               description: `Rapport d'audit complet pour ${url}`,
             },
             unit_amount: 900, // 9€ in cents
+            tax_behavior: "inclusive",
           },
           quantity: 1,
         },
       ],
       mode: "payment",
+      locale: "auto",
+      currency: "eur",
       success_url: `${request.nextUrl.origin}/report/${auditId}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.nextUrl.origin}?cancelled=true`,
       metadata: {
