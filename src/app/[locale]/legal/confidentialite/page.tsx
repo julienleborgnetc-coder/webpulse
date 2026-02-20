@@ -8,7 +8,7 @@ export async function generateMetadata() {
 export default async function ConfidentialitePage() {
   const t = await getTranslations("legal.privacy");
   return (
-    <article className="prose prose-slate max-w-none">
+    <article className="prose prose-invert max-w-none">
       <h1>{t("title")}</h1>
       <p className="text-sm text-slate-500">{t("lastUpdate")}</p>
       <h2>{t("s1title")}</h2>
