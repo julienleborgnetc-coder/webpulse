@@ -1,4 +1,11 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
+
 export function Footer() {
+  const t = useTranslations("footer");
+
   return (
     <footer className="border-t border-white/5 py-8 px-4">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
@@ -21,18 +28,18 @@ export function Footer() {
           <span className="font-bold text-white">Web<span className="gradient-text">Pulse</span></span>
         </div>
         <p className="text-sm text-slate-600">
-          © {new Date().getFullYear()} WebPulse. Audit de site web instantané.
+          © {new Date().getFullYear()} WebPulse. {t("tagline")}
         </p>
         <div className="flex gap-6 text-sm text-slate-500">
-          <a href="/legal/cgv" className="hover:text-white transition">
-            CGV
-          </a>
-          <a href="/legal/confidentialite" className="hover:text-white transition">
-            Confidentialité
-          </a>
-          <a href="/legal/mentions" className="hover:text-white transition">
-            Mentions légales
-          </a>
+          <Link href="/legal/cgv" className="hover:text-white transition">
+            {t("cgv")}
+          </Link>
+          <Link href="/legal/confidentialite" className="hover:text-white transition">
+            {t("privacy")}
+          </Link>
+          <Link href="/legal/mentions" className="hover:text-white transition">
+            {t("legal")}
+          </Link>
         </div>
       </div>
     </footer>

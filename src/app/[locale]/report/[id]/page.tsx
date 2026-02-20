@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AuditResult } from "@/lib/types";
 import { ScoreGauge } from "@/components/ScoreGauge";
+import { Link } from "@/i18n/routing";
 
 export default function ReportPage() {
+  const t = useTranslations("report");
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params.id as string;
@@ -20,7 +23,6 @@ export default function ReportPage() {
 
   useEffect(() => {
     async function loadReport() {
-      // If we have a session_id from Stripe, verify payment first
       if (sessionId) {
         setVerifying(true);
         try {
@@ -39,36 +41,30 @@ export default function ReportPage() {
         setVerifying(false);
       }
 
-      // Load the report
       try {
         const res = await fetch(`/api/report?id=${id}`);
         if (!res.ok) {
           const data = await res.json();
-          setError(data.error || "Impossible de charger le rapport");
+          setError(data.error || t("unavailable"));
           return;
         }
 
-        // The report comes as HTML, but we also need structured data
-        // Fetch the audit data directly
         const dataRes = await fetch(`/api/report/data?id=${id}`);
         if (dataRes.ok) {
           const auditData = await dataRes.json();
           setResult(auditData);
         } else {
-          // Fallback: show HTML report in iframe
-          setError(null);
-          // Use the HTML report URL directly
           window.location.href = `/api/report?id=${id}`;
         }
       } catch {
-        setError("Erreur lors du chargement du rapport");
+        setError(t("unavailable"));
       } finally {
         setLoading(false);
       }
     }
 
     loadReport();
-  }, [id, sessionId]);
+  }, [id, sessionId, t]);
 
   if (loading || verifying) {
     return (
@@ -77,9 +73,9 @@ export default function ReportPage() {
         <div className="max-w-3xl mx-auto px-4 py-20 text-center">
           <div className="animate-spin w-12 h-12 border-4 border-brand-900 border-t-brand-400 rounded-full mx-auto mb-6" />
           <h1 className="text-2xl font-bold text-white mb-2">
-            {verifying ? "Vérification du paiement..." : "Chargement du rapport..."}
+            {verifying ? t("verifying") : t("loading")}
           </h1>
-          <p className="text-slate-400">Un instant, nous préparons votre rapport.</p>
+          <p className="text-slate-400">{t("preparing")}</p>
         </div>
         <Footer />
       </main>
@@ -96,11 +92,11 @@ export default function ReportPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Rapport non disponible</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">{t("unavailable")}</h1>
           <p className="text-slate-400 mb-6">{error}</p>
-          <a href="/" className="btn-primary inline-block px-6 py-3">
-            Retour à l&apos;accueil
-          </a>
+          <Link href="/" className="btn-primary inline-block px-6 py-3">
+            {t("backHome")}
+          </Link>
         </div>
         <Footer />
       </main>
@@ -110,9 +106,15 @@ export default function ReportPage() {
   if (!result) return null;
 
   const allItems = [
-    ...result.performance.items.map((i) => ({ ...i, category: "Performance" })),
-    ...result.seo.items.map((i) => ({ ...i, category: "SEO" })),
-    ...result.accessibility.items.map((i) => ({ ...i, category: "Accessibilité" })),
+    ...result.performance.items.map((i) => ({ ...i, category: t("performance") })),
+    ...result.seo.items.map((i) => ({ ...i, category: t("seo") })),
+    ...result.accessibility.items.map((i) => ({ ...i, category: t("accessibility") })),
+  ];
+
+  const categories = [
+    { key: t("performance"), emoji: "🚀" },
+    { key: t("seo"), emoji: "🔍" },
+    { key: t("accessibility"), emoji: "♿" },
   ];
 
   return (
@@ -128,8 +130,8 @@ export default function ReportPage() {
             </svg>
           </div>
           <div>
-            <p className="font-semibold text-emerald-300">Rapport Pro débloqué</p>
-            <p className="text-emerald-400/70 text-sm">Voici votre rapport complet pour {result.url}</p>
+            <p className="font-semibold text-emerald-300">{t("proUnlocked")}</p>
+            <p className="text-emerald-400/70 text-sm">{t("fullReportFor", { url: result.url })}</p>
           </div>
           <a
             href={`/api/report?id=${id}`}
@@ -139,7 +141,7 @@ export default function ReportPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Télécharger HTML
+            {t("downloadHtml")}
           </a>
         </div>
       </div>
@@ -147,7 +149,7 @@ export default function ReportPage() {
       <div className="max-w-5xl mx-auto px-4 py-10">
         {/* Audit info */}
         <div className="mb-10">
-          <h1 className="text-3xl font-extrabold text-white mb-2">Rapport d&apos;audit Pro</h1>
+          <h1 className="text-3xl font-extrabold text-white mb-2">{t("proTitle")}</h1>
           <p className="text-slate-500">
             {result.url} — {new Date(result.timestamp).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" })}
           </p>
@@ -156,40 +158,39 @@ export default function ReportPage() {
         {/* Scores */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           <div className="glass-card rounded-2xl p-8 text-center">
-            <ScoreGauge score={result.performance.score} label="Performance" />
+            <ScoreGauge score={result.performance.score} label={t("performance")} />
           </div>
           <div className="glass-card rounded-2xl p-8 text-center">
-            <ScoreGauge score={result.seo.score} label="SEO" />
+            <ScoreGauge score={result.seo.score} label={t("seo")} />
           </div>
           <div className="glass-card rounded-2xl p-8 text-center">
-            <ScoreGauge score={result.accessibility.score} label="Accessibilité" />
+            <ScoreGauge score={result.accessibility.score} label={t("accessibility")} />
           </div>
         </div>
 
         {/* Metrics */}
         <div className="glass-card rounded-2xl p-8 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">📊 Métriques clés</h2>
+          <h2 className="text-xl font-bold text-white mb-4">{t("keyMetrics")}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <MetricCard label="Temps de chargement" value={`${(result.details.loadTime / 1000).toFixed(2)}s`} />
-            <MetricCard label="Taille de la page" value={formatBytes(result.details.pageSize)} />
-            <MetricCard label="Liens internes" value={String(result.details.links.internal)} />
-            <MetricCard label="Liens externes" value={String(result.details.links.external)} />
-            <MetricCard label="Images" value={String(result.details.images.length)} />
-            <MetricCard label="Titres (headings)" value={String(result.details.headings.length)} />
-            <MetricCard label="Mobile-friendly" value={result.details.mobile.hasViewport ? "✓ Oui" : "✗ Non"} />
-            <MetricCard label="Titre" value={result.details.title ? "✓ Présent" : "✗ Manquant"} />
+            <MetricCard label={t("loadTime")} value={`${(result.details.loadTime / 1000).toFixed(2)}s`} />
+            <MetricCard label={t("pageSize")} value={formatBytes(result.details.pageSize)} />
+            <MetricCard label={t("internalLinks")} value={String(result.details.links.internal)} />
+            <MetricCard label={t("externalLinks")} value={String(result.details.links.external)} />
+            <MetricCard label={t("images")} value={String(result.details.images.length)} />
+            <MetricCard label={t("headingsCount")} value={String(result.details.headings.length)} />
+            <MetricCard label={t("mobileFriendly")} value={result.details.mobile.hasViewport ? t("yes") : t("no")} />
+            <MetricCard label={t("titleTag")} value={result.details.title ? t("yes") : t("no")} />
           </div>
         </div>
 
         {/* All issues by category */}
-        {["Performance", "SEO", "Accessibilité"].map((category) => {
-          const categoryItems = allItems.filter((i) => i.category === category);
+        {categories.map(({ key, emoji }) => {
+          const categoryItems = allItems.filter((i) => i.category === key);
           if (categoryItems.length === 0) return null;
-          const emoji = category === "Performance" ? "🚀" : category === "SEO" ? "🔍" : "♿";
           return (
-            <div key={category} className="glass-card rounded-2xl p-8 mb-6">
+            <div key={key} className="glass-card rounded-2xl p-8 mb-6">
               <h2 className="text-xl font-bold text-white mb-4">
-                {emoji} {category}
+                {emoji} {key}
               </h2>
               <div className="space-y-3">
                 {categoryItems.map((item, i) => (
@@ -220,7 +221,7 @@ export default function ReportPage() {
         {/* Headings structure */}
         {result.details.headings.length > 0 && (
           <div className="glass-card rounded-2xl p-8 mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">📑 Structure des titres</h2>
+            <h2 className="text-xl font-bold text-white mb-4">{t("headingsStructure")}</h2>
             <div className="space-y-1">
               {result.details.headings.map((h, i) => {
                 const indent = (parseInt(h.tag.replace("h", "")) - 1) * 24;
@@ -244,13 +245,13 @@ export default function ReportPage() {
         {/* Images without alt */}
         {result.details.images.some((img) => !img.hasAlt) && (
           <div className="glass-card rounded-2xl p-8 mb-6">
-            <h2 className="text-xl font-bold text-white mb-4">🖼️ Images sans attribut alt</h2>
+            <h2 className="text-xl font-bold text-white mb-4">{t("imagesNoAlt")}</h2>
             <div className="space-y-2">
               {result.details.images
                 .filter((img) => !img.hasAlt)
                 .map((img, i) => (
                   <div key={i} className="bg-red-500/5 border border-red-500/10 rounded-lg p-3 text-sm">
-                    <code className="text-red-400 break-all">{img.src || "(src vide)"}</code>
+                    <code className="text-red-400 break-all">{img.src || t("emptySrc")}</code>
                   </div>
                 ))}
             </div>

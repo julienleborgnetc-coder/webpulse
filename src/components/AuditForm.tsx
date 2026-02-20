@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface AuditFormProps {
   onSubmit: (url: string) => void;
@@ -8,6 +9,7 @@ interface AuditFormProps {
 }
 
 export function AuditForm({ onSubmit, isLoading }: AuditFormProps) {
+  const t = useTranslations("auditForm");
   const [url, setUrl] = useState("");
   const [focused, setFocused] = useState(false);
 
@@ -30,7 +32,6 @@ export function AuditForm({ onSubmit, isLoading }: AuditFormProps) {
           focused ? "glow-brand border-brand-500/30" : ""
         }`}
       >
-        {/* Animated border glow */}
         {focused && (
           <div className="absolute -inset-[1px] bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-blue-500/20 rounded-2xl blur-sm -z-10" />
         )}
@@ -56,7 +57,7 @@ export function AuditForm({ onSubmit, isLoading }: AuditFormProps) {
             onChange={(e) => setUrl(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            placeholder="Entrez l'URL de votre site..."
+            placeholder={t("placeholder")}
             className="w-full py-3.5 bg-transparent text-white placeholder-slate-500 outline-none text-lg"
             disabled={isLoading}
           />
@@ -68,42 +69,17 @@ export function AuditForm({ onSubmit, isLoading }: AuditFormProps) {
         >
           {isLoading ? (
             <>
-              <svg
-                className="animate-spin w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
+              <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Analyse...
+              {t("loading")}
             </>
           ) : (
             <>
-              Auditer
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
+              {t("submit")}
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </>
           )}

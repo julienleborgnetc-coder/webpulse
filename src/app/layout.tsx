@@ -35,7 +35,7 @@ export default function RootLayout({
     name: "WebPulse",
     description:
       "Analysez les performances, le SEO et l'accessibilité de votre site web en 30 secondes.",
-    url: "https://webpulse.vercel.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://webpulse.vercel.app",
     applicationCategory: "WebApplication",
     operatingSystem: "All",
     offers: {
@@ -47,7 +47,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="fr">
+    <html suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"

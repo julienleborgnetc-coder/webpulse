@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting: 10 audits per minute per IP
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const { allowed, remaining, resetIn } = rateLimit(ip, 10, 60_000);
+    const { allowed, remaining, resetIn } = await rateLimit(ip, 10, 60_000);
 
     if (!allowed) {
       return NextResponse.json(
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const result = await performAudit(url);
 
     // Store result for later report generation
-    auditStore.set(result.id, result);
+    await auditStore.set(result.id, result);
 
     return NextResponse.json(result);
   } catch (error: unknown) {

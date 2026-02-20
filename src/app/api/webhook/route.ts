@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const auditId = session.metadata?.auditId;
 
     if (auditId) {
-      const marked = auditStore.markPaid(auditId, session.id);
+      const marked = await auditStore.markPaid(auditId, session.id);
       if (marked) {
         console.log(`✅ Audit ${auditId} marked as paid (session: ${session.id})`);
       } else {

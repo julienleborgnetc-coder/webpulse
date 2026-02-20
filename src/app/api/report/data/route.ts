@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const entry = auditStore.get(id);
+  const entry = await auditStore.get(id);
 
   if (!entry) {
     return NextResponse.json(

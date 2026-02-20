@@ -1,12 +1,67 @@
 import * as cheerio from "cheerio";
 import https from "https";
 import http from "http";
+import dns from "dns/promises";
+import { isIP } from "net";
 import {
   AuditResult,
   AuditItem,
   HeadingInfo,
   ImageInfo,
 } from "@/lib/types";
+
+// ----- SSRF Protection -----
+const BLOCKED_RANGES = [
+  /^127\./,          // loopback
+  /^10\./,           // RFC1918
+  /^172\.(1[6-9]|2\d|3[01])\./,  // RFC1918
+  /^192\.168\./,     // RFC1918
+  /^0\./,            // current network
+  /^169\.254\./,     // link-local
+  /^::1$/,           // IPv6 loopback
+  /^fc00:/i,         // IPv6 unique-local
+  /^fe80:/i,         // IPv6 link-local
+];
+
+const BLOCKED_HOSTNAMES = new Set([
+  "localhost",
+  "metadata.google.internal",
+  "169.254.169.254",
+]);
+
+async function assertPublicUrl(url: string): Promise<void> {
+  const parsed = new URL(url);
+
+  // Only allow http(s)
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error("Seules les URLs HTTP/HTTPS sont autorisées.");
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  if (BLOCKED_HOSTNAMES.has(hostname)) {
+    throw new Error("Cette URL cible une adresse non autorisée.");
+  }
+
+  // Resolve hostname to IPs and check each one
+  let addresses: string[];
+  if (isIP(hostname)) {
+    addresses = [hostname];
+  } else {
+    try {
+      const result = await dns.resolve4(hostname);
+      addresses = result;
+    } catch {
+      throw new Error("Impossible de résoudre le nom de domaine.");
+    }
+  }
+
+  for (const addr of addresses) {
+    if (BLOCKED_RANGES.some((re) => re.test(addr))) {
+      throw new Error("Cette URL cible une adresse privée non autorisée.");
+    }
+  }
+}
 
 /**
  * Fetch a URL using Node.js native http/https modules for maximum compatibility.
@@ -27,7 +82,6 @@ function fetchUrl(url: string, timeoutMs = 30000): Promise<{ html: string; statu
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "fr,en;q=0.9",
       },
-      rejectUnauthorized: false, // Handle environments with missing CA certs
       timeout: timeoutMs,
     };
 
@@ -62,6 +116,9 @@ function fetchUrl(url: string, timeoutMs = 30000): Promise<{ html: string; statu
 }
 
 export async function performAudit(url: string): Promise<AuditResult> {
+  // SSRF protection: verify the URL targets a public address
+  await assertPublicUrl(url);
+
   const id = generateId();
   const startTime = Date.now();
 

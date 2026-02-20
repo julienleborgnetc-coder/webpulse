@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify audit exists
-    const audit = auditStore.getResult(auditId);
+    const audit = await auditStore.getResult(auditId);
     if (!audit) {
       return NextResponse.json(
         { error: "Audit non trouvé ou expiré" },
@@ -26,13 +26,11 @@ export async function POST(request: NextRequest) {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
     if (!stripeSecretKey) {
-      // Dev mode: mark as paid directly and return report URL
-      auditStore.markPaid(auditId, "dev-mode");
-      return NextResponse.json({
-        fallback: true,
-        reportUrl: `/report/${auditId}`,
-        message: "Mode développement : accès direct au rapport (Stripe non configuré).",
-      });
+      console.error("STRIPE_SECRET_KEY is not configured");
+      return NextResponse.json(
+        { error: "Le système de paiement n'est pas configuré. Contactez l'administrateur." },
+        { status: 503 }
+      );
     }
 
     // Create Stripe Checkout session

@@ -15,15 +15,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Already paid — skip verification
-    if (auditStore.isPaid(auditId)) {
+    if (await auditStore.isPaid(auditId)) {
       return NextResponse.json({ verified: true });
     }
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
     if (!stripeSecretKey) {
-      // Dev mode: already handled by checkout fallback
-      return NextResponse.json({ verified: true });
+      console.error("STRIPE_SECRET_KEY is not configured");
+      return NextResponse.json(
+        { error: "Le système de paiement n'est pas configuré." },
+        { status: 503 }
+      );
     }
 
     const stripe = new Stripe(stripeSecretKey);
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
       session.payment_status === "paid" &&
       session.metadata?.auditId === auditId
     ) {
-      auditStore.markPaid(auditId, session.id);
+      await auditStore.markPaid(auditId, session.id);
       return NextResponse.json({ verified: true });
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { AuditForm } from "@/components/AuditForm";
@@ -11,6 +12,7 @@ import { Footer } from "@/components/Footer";
 import { AuditResult } from "@/lib/types";
 
 export default function Home() {
+  const t = useTranslations("auditForm");
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +31,14 @@ export default function Home() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Erreur lors de l'audit");
+        throw new Error(data.error || t("error"));
       }
 
       const data = await response.json();
       setAuditResult(data);
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Une erreur est survenue"
+        err instanceof Error ? err.message : t("error")
       );
     } finally {
       setIsLoading(false);

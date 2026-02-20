@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const entry = auditStore.get(id);
+  const entry = await auditStore.get(id);
 
   if (!entry) {
     return NextResponse.json(
@@ -44,6 +44,8 @@ export async function GET(request: NextRequest) {
 }
 
 function generateReportHTML(result: AuditResult): string {
+  const siteHost = (process.env.NEXT_PUBLIC_SITE_URL || "https://webpulse.vercel.app").replace(/^https?:\/\//, "");
+
   const getStatusEmoji = (status: string) => {
     if (status === "pass") return "✅";
     if (status === "warning") return "⚠️";
@@ -188,7 +190,7 @@ function generateReportHTML(result: AuditResult): string {
   }
 
   <div class="footer">
-    <p>Généré par WebPulse — webpulse.vercel.app</p>
+    <p>Généré par WebPulse — ${siteHost}</p>
     <p>Ce rapport a été généré automatiquement. Pour un audit approfondi, consultez un expert.</p>
   </div>
 </body>

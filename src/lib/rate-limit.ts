@@ -1,8 +1,26 @@
 /**
- * Simple in-memory rate limiter (MVP).
- * For production, use @upstash/ratelimit with Vercel KV.
+ * Distributed rate limiter using @upstash/ratelimit (production).
+ * Falls back to in-memory limiter when Upstash is not configured (dev).
  */
 
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+// ---- Upstash rate limiter (production) ----
+function getUpstashLimiter(): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+
+  return new Ratelimit({
+    redis: new Redis({ url, token }),
+    limiter: Ratelimit.slidingWindow(10, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:audit",
+  });
+}
+
+// ---- In-memory fallback (dev) ----
 interface RateLimitEntry {
   count: number;
   resetAt: number;
@@ -10,20 +28,10 @@ interface RateLimitEntry {
 
 const limits = new Map<string, RateLimitEntry>();
 
-// Clean old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  limits.forEach((entry, key) => {
-    if (now > entry.resetAt) {
-      limits.delete(key);
-    }
-  });
-}, 5 * 60 * 1000);
-
-export function rateLimit(
+function memoryRateLimit(
   key: string,
-  maxRequests: number = 10,
-  windowMs: number = 60 * 1000
+  maxRequests: number,
+  windowMs: number
 ): { allowed: boolean; remaining: number; resetIn: number } {
   const now = Date.now();
   const entry = limits.get(key);
@@ -34,11 +42,7 @@ export function rateLimit(
   }
 
   if (entry.count >= maxRequests) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetIn: entry.resetAt - now,
-    };
+    return { allowed: false, remaining: 0, resetIn: entry.resetAt - now };
   }
 
   entry.count++;
@@ -47,4 +51,25 @@ export function rateLimit(
     remaining: maxRequests - entry.count,
     resetIn: entry.resetAt - now,
   };
+}
+
+// ---- Public API ----
+export async function rateLimit(
+  key: string,
+  maxRequests: number = 10,
+  windowMs: number = 60 * 1000
+): Promise<{ allowed: boolean; remaining: number; resetIn: number }> {
+  const upstash = getUpstashLimiter();
+
+  if (upstash) {
+    const { success, remaining, reset } = await upstash.limit(key);
+    return {
+      allowed: success,
+      remaining,
+      resetIn: Math.max(0, reset - Date.now()),
+    };
+  }
+
+  // Dev fallback
+  return memoryRateLimit(key, maxRequests, windowMs);
 }

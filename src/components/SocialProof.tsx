@@ -1,42 +1,41 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 export function SocialProof() {
+  const t = useTranslations("social");
   return (
     <section className="max-w-5xl mx-auto px-4 mb-24">
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20">
-        <StatCard number="500+" label="Sites audités" icon="📊" />
-        <StatCard number="4.8/5" label="Satisfaction client" icon="⭐" />
-        <StatCard number="< 30s" label="Temps d'analyse moyen" icon="⚡" />
+        <StatCard number="500+" label={t("sitesAudited")} icon="📊" />
+        <StatCard number="4.8/5" label={t("satisfaction")} icon="⭐" />
+        <StatCard number="< 30s" label={t("avgTime")} icon="⚡" />
       </div>
 
-      {/* Testimonials */}
       <div className="text-center mb-12">
-        <h2 className="section-title">
-          Ce que nos utilisateurs en pensent
-        </h2>
-        <p className="section-subtitle">
-          Freelances, agences et entrepreneurs nous font confiance.
-        </p>
+        <h2 className="section-title">{t("title")}</h2>
+        <p className="section-subtitle">{t("subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Testimonial
-          quote="J'utilise WebPulse avant chaque livraison client. Le rapport Pro est devenu mon outil de closing préféré."
-          author="Marie L."
-          role="Freelance Web Designer"
+          quote={t("testimonials.marie.quote")}
+          author={t("testimonials.marie.author")}
+          role={t("testimonials.marie.role")}
           initials="ML"
           color="from-purple-500 to-pink-500"
         />
         <Testimonial
-          quote="Enfin un outil simple qui combine SEO, perf et accessibilité. Le rapport est clair et professionnel."
-          author="Thomas R."
-          role="Directeur agence digitale"
+          quote={t("testimonials.thomas.quote")}
+          author={t("testimonials.thomas.author")}
+          role={t("testimonials.thomas.role")}
           initials="TR"
           color="from-blue-500 to-cyan-500"
         />
         <Testimonial
-          quote="WebPulse m'a aidé à identifier des problèmes que je ne voyais pas. Mon site est passé de 45 à 92 en score SEO !"
-          author="Julie M."
-          role="Entrepreneure e-commerce"
+          quote={t("testimonials.julie.quote")}
+          author={t("testimonials.julie.author")}
+          role={t("testimonials.julie.role")}
           initials="JM"
           color="from-emerald-500 to-teal-500"
         />
@@ -55,19 +54,7 @@ function StatCard({ number, label, icon }: { number: string; label: string; icon
   );
 }
 
-function Testimonial({
-  quote,
-  author,
-  role,
-  initials,
-  color,
-}: {
-  quote: string;
-  author: string;
-  role: string;
-  initials: string;
-  color: string;
-}) {
+function Testimonial({ quote, author, role, initials, color }: { quote: string; author: string; role: string; initials: string; color: string }) {
   return (
     <div className="glass-card-hover rounded-2xl p-6 flex flex-col">
       <div className="flex gap-1 mb-4">
@@ -77,9 +64,7 @@ function Testimonial({
           </svg>
         ))}
       </div>
-      <p className="text-slate-400 text-sm leading-relaxed flex-1 mb-5">
-        &ldquo;{quote}&rdquo;
-      </p>
+      <p className="text-slate-400 text-sm leading-relaxed flex-1 mb-5">&ldquo;{quote}&rdquo;</p>
       <div className="flex items-center gap-3">
         <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
           {initials}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AuditResult } from "@/lib/types";
 import { ScoreGauge } from "./ScoreGauge";
 
@@ -9,6 +10,7 @@ interface ResultsSectionProps {
 }
 
 export function ResultsSection({ result }: ResultsSectionProps) {
+  const t = useTranslations("results");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const handleBuyReport = async () => {
@@ -51,7 +53,7 @@ export function ResultsSection({ result }: ResultsSectionProps) {
           <div className="relative flex items-center justify-between">
             <div>
               <p className="text-brand-200 text-sm font-medium mb-1">
-                Résultats de l&apos;audit
+                {t("title")}
               </p>
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">
                 {result.url}
@@ -85,8 +87,8 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                 />
               </svg>
               {checkoutLoading
-                ? "Chargement..."
-                : "Obtenir le rapport Pro — 9€"}
+                ? t("loading")
+                : t("getProReport")}
             </button>
           </div>
         </div>
@@ -123,31 +125,31 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            Métriques clés
+            {t("metrics")}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <MetricCard
-              label="Temps de chargement"
+              label={t("loadTime")}
               value={`${(result.details.loadTime / 1000).toFixed(1)}s`}
               good={result.details.loadTime < 3000}
               icon="⚡"
             />
             <MetricCard
-              label="Taille de la page"
+              label={t("pageSize")}
               value={formatBytes(result.details.pageSize)}
               good={result.details.pageSize < 3000000}
               icon="📦"
             />
             <MetricCard
-              label="Balise titre"
-              value={result.details.title ? "Présent" : "Manquant"}
+              label={t("titleTag")}
+              value={result.details.title ? t("present") : t("missing")}
               good={!!result.details.title}
               icon="🏷️"
             />
             <MetricCard
-              label="Meta description"
+              label={t("metaDesc")}
               value={
-                result.details.metaDescription ? "Présente" : "Manquante"
+                result.details.metaDescription ? t("present") : t("missing")
               }
               good={!!result.details.metaDescription}
               icon="📝"
@@ -171,9 +173,9 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
               />
             </svg>
-            Problèmes détectés
+            {t("issues")}
             <span className="text-sm font-normal text-slate-500">
-              ({allIssues.length} trouvés)
+              ({t("issuesFound", { count: allIssues.length })})
             </span>
           </h3>
           <div className="space-y-2">
@@ -207,7 +209,7 @@ export function ResultsSection({ result }: ResultsSectionProps) {
           <div className="p-8 select-none" aria-hidden="true">
             <div className="filter blur-[6px] pointer-events-none">
               <h3 className="text-lg font-bold text-white mb-4">
-                Analyse détaillée
+                {t("detailedAnalysis")}
               </h3>
               <div className="space-y-2">
                 {allIssues.slice(3, 8).map((item, i) => (
@@ -230,10 +232,10 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                   <span className="mt-0.5 text-lg">📊</span>
                   <div>
                     <p className="font-semibold text-white text-sm">
-                      Structure des headings H1-H6
+                      {t("headingsStructure")}
                     </p>
                     <p className="text-slate-400 text-xs mt-0.5">
-                      Visualisation complète de la hiérarchie
+                      {t("headingsDesc")}
                     </p>
                   </div>
                 </div>
@@ -241,10 +243,10 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                   <span className="mt-0.5 text-lg">🖼️</span>
                   <div>
                     <p className="font-semibold text-white text-sm">
-                      Audit complet des images
+                      {t("imageAudit")}
                     </p>
                     <p className="text-slate-400 text-xs mt-0.5">
-                      Liste de toutes les images sans attribut alt
+                      {t("imageAuditDesc")}
                     </p>
                   </div>
                 </div>
@@ -271,13 +273,12 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">
                   {hiddenCount > 0
-                    ? `+${hiddenCount} problèmes`
-                    : "Rapport complet"}{" "}
-                  à découvrir
+                    ? t("problemsToDiscover", { count: hiddenCount })
+                    : t("fullReport")}{" "}
+                  {t("toDiscover")}
                 </h3>
                 <p className="text-slate-400 text-sm mb-6">
-                  Débloquez l&apos;analyse détaillée, les recommandations
-                  personnalisées et le rapport HTML téléchargeable.
+                  {t("unlockDescription")}
                 </p>
                 <button
                   onClick={handleBuyReport}
@@ -305,7 +306,7 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                         />
                       </svg>
-                      Chargement...
+                      {t("loading")}
                     </>
                   ) : (
                     <>
@@ -322,7 +323,7 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                           d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                         />
                       </svg>
-                      Obtenir le rapport Pro — 9€
+                      {t("getProReport")}
                     </>
                   )}
                 </button>
@@ -340,7 +341,7 @@ export function ResultsSection({ result }: ResultsSectionProps) {
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                     />
                   </svg>
-                  Paiement sécurisé par Stripe
+                  {t("securePayment")}
                 </p>
               </div>
             </div>
@@ -354,7 +355,7 @@ export function ResultsSection({ result }: ResultsSectionProps) {
             disabled={checkoutLoading}
             className="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {checkoutLoading ? "Chargement..." : "Rapport Pro — 9€"}
+            {checkoutLoading ? t("loading") : t("proReport")}
           </button>
         </div>
       </div>
