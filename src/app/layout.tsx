@@ -23,6 +23,9 @@ export const metadata: Metadata = {
       "Analysez les performances, le SEO et l'accessibilité de votre site en 30 secondes.",
     type: "website",
   },
+  verification: {
+    google: "L-gxXiyiGtgjDRpsgH-9L26rqB",
+  },
 };
 
 export default function RootLayout({
