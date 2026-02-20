@@ -1,4 +1,10 @@
 {
+  "metadata": {
+    "title": "WebPulse - Audit de site web instantané",
+    "description": "Analysez les performances, le SEO et l'accessibilité de votre site web en 30 secondes. Obtenez un rapport professionnel détaillé.",
+    "ogTitle": "WebPulse - Audit de site web instantané",
+    "ogDescription": "Analysez les performances, le SEO et l'accessibilité de votre site en 30 secondes."
+  },
   "header": {
     "audit": "Audit",
     "pricing": "Tarifs",
