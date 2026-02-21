@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad-fav" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="50%" style="stop-color:#a855f7"/>
+      <stop offset="100%" style="stop-color:#60a5fa"/>
+    </linearGradient>
+    <linearGradient id="pulse-fav" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" style="stop-color:#c7d2fe"/>
+      <stop offset="50%" style="stop-color:#e9d5ff"/>
+      <stop offset="100%" style="stop-color:#bfdbfe"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="url(#grad-fav)"/>
+  
+  <!-- Pulse wave centered -->
+  <path d="M96 270 L160 270 L190 270 L215 190 L250 350 L285 170 L315 330 L340 240 L360 270 L416 270" 
+        fill="none" stroke="url(#pulse-fav)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Subtle dots -->
+  <circle cx="96" cy="270" r="8" fill="#c7d2fe" opacity="0.8"/>
+  <circle cx="416" cy="270" r="8" fill="#bfdbfe" opacity="0.8"/>
+</svg>

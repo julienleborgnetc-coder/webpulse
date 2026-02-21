@@ -5,7 +5,10 @@ export interface AuditResult {
   performance: CategoryResult;
   seo: CategoryResult;
   accessibility: CategoryResult;
+  security: CategoryResult;
   details: AuditDetails;
+  priorities: PriorityAction[];
+  globalScore: number;
 }
 
 export interface CategoryResult {
@@ -20,6 +23,17 @@ export interface AuditItem {
   description: string;
   status: "pass" | "fail" | "warning";
   value?: string;
+  impact?: "high" | "medium" | "low";
+  recommendation?: string;
+}
+
+export interface PriorityAction {
+  priority: number; // 1 = highest
+  title: string;
+  description: string;
+  impact: "high" | "medium" | "low";
+  category: string;
+  effort: "easy" | "medium" | "hard";
 }
 
 export interface AuditDetails {
@@ -32,6 +46,18 @@ export interface AuditDetails {
   images: ImageInfo[];
   links: LinkInfo;
   mobile: MobileInfo;
+  technologies: string[];
+  htmlSize: number;
+  domElements: number;
+  hasRobotsTxt?: boolean;
+  hasSitemap?: boolean;
+  hasFavicon: boolean;
+  hasStructuredData: boolean;
+  httpsRedirect: boolean;
+  mixedContent: boolean;
+  inlineStyles: number;
+  iframeCount: number;
+  wordCount: number;
 }
 
 export interface HeadingInfo {
@@ -43,15 +69,19 @@ export interface ImageInfo {
   src: string;
   alt: string;
   hasAlt: boolean;
+  isLazy?: boolean;
 }
 
 export interface LinkInfo {
   internal: number;
   external: number;
   broken: number;
+  nofollow: number;
 }
 
 export interface MobileInfo {
   hasViewport: boolean;
   isResponsive: boolean;
+  hasTouchIcons: boolean;
+  textTooSmall: boolean;
 }

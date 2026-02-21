@@ -109,13 +109,39 @@ export default function ReportPage() {
     ...result.performance.items.map((i) => ({ ...i, category: t("performance") })),
     ...result.seo.items.map((i) => ({ ...i, category: t("seo") })),
     ...result.accessibility.items.map((i) => ({ ...i, category: t("accessibility") })),
+    ...(result.security?.items || []).map((i) => ({ ...i, category: t("security") })),
   ];
 
   const categories = [
     { key: t("performance"), emoji: "🚀" },
     { key: t("seo"), emoji: "🔍" },
     { key: t("accessibility"), emoji: "♿" },
+    ...(result.security ? [{ key: t("security"), emoji: "🔒" }] : []),
   ];
+
+  const getImpactColor = (impact?: string) => {
+    if (impact === "high") return "bg-red-500/15 text-red-400";
+    if (impact === "medium") return "bg-yellow-500/15 text-yellow-400";
+    return "bg-slate-500/15 text-slate-400";
+  };
+
+  const getImpactLabel = (impact?: string) => {
+    if (impact === "high") return t("impactHigh");
+    if (impact === "medium") return t("impactMedium");
+    return t("impactLow");
+  };
+
+  const getEffortLabel = (effort: string) => {
+    if (effort === "easy") return t("effortEasy");
+    if (effort === "medium") return t("effortMedium");
+    return t("effortHard");
+  };
+
+  const getEffortColor = (effort: string) => {
+    if (effort === "easy") return "bg-emerald-500/15 text-emerald-400";
+    if (effort === "medium") return "bg-yellow-500/15 text-yellow-400";
+    return "bg-red-500/15 text-red-400";
+  };
 
   return (
     <main className="min-h-screen">
@@ -155,8 +181,31 @@ export default function ReportPage() {
           </p>
         </div>
 
-        {/* Scores */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        {/* Global Score */}
+        {result.globalScore !== undefined && (
+          <div className="glass-card rounded-2xl p-8 mb-8 text-center">
+            <p className="text-sm text-slate-400 mb-3 font-medium">{t("globalScore")}</p>
+            <div className={`text-7xl font-black mb-2 ${
+              result.globalScore >= 90 ? "text-emerald-400" :
+              result.globalScore >= 70 ? "text-yellow-400" :
+              result.globalScore >= 50 ? "text-orange-400" : "text-red-400"
+            }`}>
+              {result.globalScore}<span className="text-4xl text-slate-500">/100</span>
+            </div>
+            <p className={`inline-block text-sm font-semibold px-4 py-1 rounded-full ${
+              result.globalScore >= 90 ? "bg-emerald-500/10 text-emerald-400" :
+              result.globalScore >= 70 ? "bg-yellow-500/10 text-yellow-400" :
+              result.globalScore >= 50 ? "bg-orange-500/10 text-orange-400" : "bg-red-500/10 text-red-400"
+            }`}>
+              {result.globalScore >= 90 ? t("scoreExcellent") :
+               result.globalScore >= 70 ? t("scoreGood") :
+               result.globalScore >= 50 ? t("scoreAverage") : t("scorePoor")}
+            </p>
+          </div>
+        )}
+
+        {/* Scores — 4 categories */}
+        <div className={`grid grid-cols-2 ${result.security ? "md:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-10`}>
           <div className="glass-card rounded-2xl p-8 text-center">
             <ScoreGauge score={result.performance.score} label={t("performance")} />
           </div>
@@ -166,24 +215,86 @@ export default function ReportPage() {
           <div className="glass-card rounded-2xl p-8 text-center">
             <ScoreGauge score={result.accessibility.score} label={t("accessibility")} />
           </div>
+          {result.security && (
+            <div className="glass-card rounded-2xl p-8 text-center">
+              <ScoreGauge score={result.security.score} label={t("security")} />
+            </div>
+          )}
         </div>
 
-        {/* Metrics */}
+        {/* Key Metrics — Extended */}
         <div className="glass-card rounded-2xl p-8 mb-8">
           <h2 className="text-xl font-bold text-white mb-4">{t("keyMetrics")}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <MetricCard label={t("loadTime")} value={`${(result.details.loadTime / 1000).toFixed(2)}s`} />
-            <MetricCard label={t("pageSize")} value={formatBytes(result.details.pageSize)} />
+            <MetricCard label={t("loadTime")} value={`${(result.details.loadTime / 1000).toFixed(2)}s`} good={result.details.loadTime < 3000} />
+            <MetricCard label={t("pageSize")} value={formatBytes(result.details.pageSize)} good={result.details.pageSize < 3000000} />
             <MetricCard label={t("internalLinks")} value={String(result.details.links.internal)} />
             <MetricCard label={t("externalLinks")} value={String(result.details.links.external)} />
             <MetricCard label={t("images")} value={String(result.details.images.length)} />
             <MetricCard label={t("headingsCount")} value={String(result.details.headings.length)} />
-            <MetricCard label={t("mobileFriendly")} value={result.details.mobile.hasViewport ? t("yes") : t("no")} />
-            <MetricCard label={t("titleTag")} value={result.details.title ? t("yes") : t("no")} />
+            <MetricCard label={t("mobileFriendly")} value={result.details.mobile.hasViewport ? t("yes") : t("no")} good={result.details.mobile.hasViewport} />
+            <MetricCard label={t("titleTag")} value={result.details.title ? t("yes") : t("no")} good={!!result.details.title} />
+            <MetricCard label={t("domElements")} value={String(result.details.domElements || "—")} good={(result.details.domElements || 0) < 1500} />
+            <MetricCard label={t("wordCount")} value={String(result.details.wordCount || "—")} good={(result.details.wordCount || 0) >= 300} />
+            <MetricCard label={t("robotsTxt")} value={result.details.hasRobotsTxt ? t("yes") : t("no")} good={result.details.hasRobotsTxt} />
+            <MetricCard label={t("sitemapXml")} value={result.details.hasSitemap ? t("yes") : t("no")} good={result.details.hasSitemap} />
+            <MetricCard label={t("structuredData")} value={result.details.hasStructuredData ? t("yes") : t("no")} good={result.details.hasStructuredData} />
+            <MetricCard label={t("httpsRedirect")} value={result.details.httpsRedirect ? t("yes") : t("no")} good={result.details.httpsRedirect} />
+            <MetricCard label={t("favicon")} value={result.details.hasFavicon ? t("yes") : t("no")} good={result.details.hasFavicon} />
+            <MetricCard label="Iframes" value={String(result.details.iframeCount || 0)} good={(result.details.iframeCount || 0) === 0} />
           </div>
         </div>
 
-        {/* All issues by category */}
+        {/* Technologies detected */}
+        {result.details.technologies && result.details.technologies.length > 0 && (
+          <div className="glass-card rounded-2xl p-8 mb-8">
+            <h2 className="text-xl font-bold text-white mb-4">{t("techDetected")}</h2>
+            <div className="flex flex-wrap gap-2">
+              {result.details.technologies.map((tech, i) => (
+                <span key={i} className="inline-flex items-center px-4 py-2 bg-brand-500/10 text-brand-300 rounded-full text-sm font-medium border border-brand-500/20">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Priority Action Plan */}
+        {result.priorities && result.priorities.length > 0 && (
+          <div className="glass-card rounded-2xl p-8 mb-8">
+            <h2 className="text-xl font-bold text-white mb-2">{t("actionPlan")}</h2>
+            <p className="text-slate-400 text-sm mb-6">{t("actionPlanDesc")}</p>
+            <div className="space-y-4">
+              {result.priorities.map((prio, i) => (
+                <div key={i} className="flex items-start gap-4 p-5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors">
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                    i === 0 ? "bg-red-500/20 text-red-400" :
+                    i === 1 ? "bg-orange-500/20 text-orange-400" :
+                    i === 2 ? "bg-yellow-500/20 text-yellow-400" :
+                    "bg-slate-500/20 text-slate-400"
+                  }`}>
+                    #{prio.priority}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <p className="font-semibold text-white">{prio.title}</p>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getImpactColor(prio.impact)}`}>
+                        {t("impact")}: {getImpactLabel(prio.impact)}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getEffortColor(prio.effort)}`}>
+                        {t("effort")}: {getEffortLabel(prio.effort)}
+                      </span>
+                    </div>
+                    <p className="text-slate-500 text-xs mb-2">{t("category")}: {prio.category}</p>
+                    <p className="text-slate-300 text-sm">{prio.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All issues by category with recommendations */}
         {categories.map(({ key, emoji }) => {
           const categoryItems = allItems.filter((i) => i.category === key);
           if (categoryItems.length === 0) return null;
@@ -196,7 +307,7 @@ export default function ReportPage() {
                 {categoryItems.map((item, i) => (
                   <div
                     key={i}
-                    className={`flex items-start gap-3 p-4 rounded-xl ${
+                    className={`p-4 rounded-xl ${
                       item.status === "pass"
                         ? "bg-emerald-500/5 border border-emerald-500/10"
                         : item.status === "fail"
@@ -204,12 +315,27 @@ export default function ReportPage() {
                         : "bg-yellow-500/5 border border-yellow-500/10"
                     }`}
                   >
-                    <span className="mt-0.5 text-lg">
-                      {item.status === "pass" ? "✅" : item.status === "fail" ? "❌" : "⚠️"}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-white">{item.title}</p>
-                      <p className="text-slate-400 text-sm mt-1">{item.description}</p>
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 text-lg">
+                        {item.status === "pass" ? "✅" : item.status === "fail" ? "❌" : "⚠️"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <p className="font-semibold text-white">{item.title}</p>
+                          {item.impact && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getImpactColor(item.impact)}`}>
+                              {getImpactLabel(item.impact)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-slate-400 text-sm mt-1">{item.description}</p>
+                        {item.recommendation && item.status !== "pass" && (
+                          <div className="mt-3 p-3 bg-brand-500/5 border border-brand-500/10 rounded-lg">
+                            <p className="text-xs font-semibold text-brand-300 mb-1">💡 {t("recommendation")}</p>
+                            <p className="text-slate-300 text-sm">{item.recommendation}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -264,11 +390,11 @@ export default function ReportPage() {
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({ label, value, good }: { label: string; value: string; good?: boolean }) {
   return (
     <div className="bg-white/5 rounded-xl p-4">
       <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className="text-lg font-bold text-white">{value}</p>
+      <p className={`text-lg font-bold ${good === undefined ? "text-white" : good ? "text-emerald-400" : "text-red-400"}`}>{value}</p>
     </div>
   );
 }
